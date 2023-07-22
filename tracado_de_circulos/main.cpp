@@ -24,21 +24,21 @@ void draw_pixel(float x, float y)
     glEnd();
 }
 
-void CirclePoints(int xo, int yo, int x, int y)
+void CirclePoints(int x_centro, int y_centro, int x, int y)
 {
-    draw_pixel(xo + x, yo + y);
-    draw_pixel(xo - x, yo + y);
-    draw_pixel(xo - x, yo - y);
-    draw_pixel(xo + x, yo - y);
-    draw_pixel(xo + y, yo + x);
-    draw_pixel(xo - y, yo + x);
-    draw_pixel(xo - y, yo - x);
-    draw_pixel(xo + y, yo - x);
+    draw_pixel(x_centro + x, y_centro + y);
+    draw_pixel(x_centro - x, y_centro + y);
+    draw_pixel(x_centro - x, y_centro - y);
+    draw_pixel(x_centro + x, y_centro - y);
+    draw_pixel(x_centro + y, y_centro + x);
+    draw_pixel(x_centro - y, y_centro + x);
+    draw_pixel(x_centro - y, y_centro - x);
+    draw_pixel(x_centro + y, y_centro - x);
 }
 
-void draw_circle(int xo, int yo, int r)
+void draw_circle(int x_centro, int y_centro, int r)
 {
-    int x, y, h;
+    int x, y, h, incE, incSE;
     //float d;
 
     /* Valores iniciais */
@@ -46,20 +46,22 @@ void draw_circle(int xo, int yo, int r)
     y = r;
     //d = 5/4.0 - r;
     h = 1 - r;
-    CirclePoints(xo,yo,x,y);
+    incE = h + 2 * x + 3; /* Incremento de E */
+    incSE = h + 2 * ( x - y ) + 5; /* Incremento de SE */
+    CirclePoints(x_centro,y_centro,x,y);
 
     while (y > x){
         if (h < 0){
             /* Selecione E */
-            h = h + 2 * x + 3;
+            h = incE;
             x++;
         }else{
             /* Selecione SE */
-            h = h + 2 * ( x - y ) + 5;
+            h = incSE;
             x++;
             y--;
         }
-        CirclePoints(xo, yo, x, y);
+        CirclePoints(x_centro, y_centro, x, y);
     }
 }
 void init() 
