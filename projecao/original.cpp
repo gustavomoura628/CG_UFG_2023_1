@@ -1,5 +1,6 @@
 #include <GL/glut.h>
 #include <iostream>
+#include <cmath>
 #include <unistd.h>
 #include <cmath>
 #include <vector>
@@ -10,10 +11,10 @@ int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 float WINDOW_LEFT = -4;
 float WINDOW_RIGHT = 4;
-float WINDOW_BOTTOM = -3;
 float WINDOW_TOP = 3;
+float WINDOW_BOTTOM = -3;
 
-// usado para alterar entre perspectiva e paralela ( paralelo == 0, perspectiva == 1 )
+// usado para alterar entre perspectiva e paralela ( 0 == paralelo, perspectiva == 1 )
 int PROJECTION_TYPE = 0;
 
 
@@ -32,6 +33,11 @@ class Point{
             x = _x;
             y = _y;
             z = _z;
+        }
+
+        friend ostream& operator<<(ostream& os, const Point & point)
+        {
+            return os << "(" << point.x << ", " << point.y << ", " << point.z << ")";
         }
 
         // funcao de teste q so faz uma rotacao hardcoded em volta de um centro (cx,cy,cz)
@@ -58,6 +64,11 @@ class Line{
         {
             p0 = _p0;
             p1 = _p1;
+        }
+
+        friend ostream& operator<<(ostream& os, const Line line)
+        {
+            return os << "Line{" << line.p0 << ", " << line.p1 << "}";
         }
 
 };
@@ -114,7 +125,6 @@ class Cube{
             {
                 lines.push_back(Line(points[i], points[(i+1)%points.size()]));
             }
-
             lines.push_back(Line(points[0], points[3]));
             lines.push_back(Line(points[2], points[5]));
             lines.push_back(Line(points[4], points[7]));
@@ -125,23 +135,20 @@ class Cube{
         {
             for(Line line: lines)
             {
-                // projeta p0 no plano de projecao ( window )
-                Point p0_projetado(0,0,0);
-                if(PROJECTION_TYPE == 1) p0_projetado = projecao_perspectiva(line.p0);
-                else p0_projetado = projecao_paralela(line.p0);
-                // traduz da window para a viewport ( screen )
-                Point p0_viewport = window_to_viewport(p0_projetado);
-
-                // projeta p0 no plano de projecao ( window )
-                Point p1_projetado(0,0,0);
-                if(PROJECTION_TYPE == 1) p1_projetado = projecao_perspectiva(line.p1);
-                else p1_projetado = projecao_paralela(line.p1);
-                // traduz da window para a viewport ( screen )
-                Point p1_viewport = window_to_viewport(p1_projetado);
-
                  glBegin(GL_LINES);
+
+                    Point p0_projetado(0,0,0);
+                    if(PROJECTION_TYPE == 1) p0_projetado = projecao_perspectiva(line.p0);
+                    else p0_projetado = projecao_paralela(line.p0);
+                    Point p0_viewport = window_to_viewport(p0_projetado);
                     glVertex2f(p0_viewport.x, p0_viewport.y);
+
+                    Point p1_projetado(0,0,0);
+                    if(PROJECTION_TYPE == 1) p1_projetado = projecao_perspectiva(line.p1);
+                    else p1_projetado = projecao_paralela(line.p1);
+                    Point p1_viewport = window_to_viewport(p1_projetado);
                     glVertex2f(p1_viewport.x, p1_viewport.y);
+
                 glEnd();
             }
         }
@@ -179,7 +186,7 @@ void display()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // desenha os cubos
+    // desenha o cubo
     glColor3f(1,0,0);
     cube0.draw();
     glColor3f(0,1,0);
@@ -194,9 +201,31 @@ void display()
     glFlush();
 }
 
+
+
+void resize_window_to_screen(GLsizei screen_width, GLsizei screen_height) 
+{
+    // Defines viewport
+    glViewport(0, 0, screen_width, screen_height);
+
+    // Initializes system coordinates
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+
+
+    // Sets window coordinates so (0,0) is the bottom left corner and (screen_width,screen_height) the top right corner
+    gluOrtho2D(0, screen_width, 0, screen_height);
+    SCREEN_WIDTH = screen_width;
+    SCREEN_HEIGHT = screen_height;
+}
+
 int COUNTER = 0;
 void idle()
 {
+    // Draw every 1/60 seconds ( 60 fps )
+    usleep(1000000/60);
+
     // roda o cubo
     cube0.rotate();
     cube1.rotate();
@@ -211,28 +240,9 @@ void idle()
     }
 
     glutPostRedisplay();
-
     COUNTER++;
-
-    // Draw every 1/60 seconds ( 60 fps )
-    usleep(1000000/60);
 }
 
-void resize_window_to_screen(GLsizei screen_width, GLsizei screen_height) 
-{
-    // Defines viewport
-    glViewport(0, 0, screen_width, screen_height);
-
-    // Initializes system coordinates
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-
-    // Sets window coordinates so (0,0) is the bottom left corner and (screen_width,screen_height) the top right corner
-    gluOrtho2D(0, screen_width, 0, screen_height);
-    SCREEN_WIDTH = screen_width;
-    SCREEN_HEIGHT = screen_height;
-}
 
 int main(int argc, char **argv) 
 {
